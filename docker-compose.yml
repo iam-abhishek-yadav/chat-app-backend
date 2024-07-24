@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    environment:
+      POSTGRES_USER: chat-app
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: chat-app
+    ports:
+      - '5432:5432'
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - '6379:6379'
+    networks:
+      - app-network
+
+  app:
+    build:
+      context: .
+      dockerfile: DockerFile
+    container_name: chat-app
+    environment:
+      DATABASE_URL: postgres://chat-app:supersecretpassword@postgres:5432/chat-app
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '8080:8080'
+      - '8081:8081'
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
